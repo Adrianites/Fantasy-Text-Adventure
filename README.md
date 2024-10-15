@@ -1,10 +1,10 @@
-### Fantasy Text Adventure
----
+# Fantasy Text Adventure
+
 ## Controls
 
-# ↑ (Up Arrow) Go Up
-# ↓ (Down Arrow) Go Down
-# ↵ (Enter) Select
+### ↑ (Up Arrow) Go Up
+### ↓ (Down Arrow) Go Down
+### ↵ (Enter) Select
 
 ---
 
