@@ -3,7 +3,7 @@
 ## Controls
 
 # ↑ (Up Arrow) Go Up
-# ⬇ (Down Arrow) Go Down
+# ↓ (Down Arrow) Go Down
 # ↵ (Enter) Select
 
 ---
