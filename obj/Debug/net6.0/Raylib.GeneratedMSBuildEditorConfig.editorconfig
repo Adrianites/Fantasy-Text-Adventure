@@ -8,6 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Raylib
-build_property.ProjectDir = D:\Adrian\TextAdventure\
+build_property.ProjectDir = D:\_Github_Reps\Fantasy-Text-Adventure\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
