@@ -5,6 +5,7 @@
 ### ↑ (Up Arrow) Go Up
 ### ↓ (Down Arrow) Go Down
 ### ↵ (Enter) Select
+### ⌫ (Backspace) Go Back
 
 ### Shout feature uses keyboard to type
 ---
