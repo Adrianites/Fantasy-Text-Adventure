@@ -6,6 +6,7 @@
 ### ↓ (Down Arrow) Go Down
 ### ↵ (Enter) Select
 
+### Shout feature uses keyboard to type
 ---
 
 ### POV: You downloading my game
