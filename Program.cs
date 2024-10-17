@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 struct Location
 {
@@ -106,6 +107,53 @@ class Enemy
     }
 }
 
+class Level
+{
+    public string Description { get; set; }
+    public Dictionary<string, int> Actions { get; set; } // Action name and the ID of the next level
+
+    public Level(string description)
+    {
+        Description = description;
+        Actions = new Dictionary<string, int>();
+    }
+
+    public void AddAction(string actionName, int nextLevelId)
+    {
+        Actions[actionName] = nextLevelId;
+    }
+}
+
+class LevelManager
+{
+    private Dictionary<int, Level> levels;
+    public int CurrentLevelId { get; private set; }
+
+    public LevelManager()
+    {
+        levels = new Dictionary<int, Level>();
+        CurrentLevelId = 0;
+    }
+
+    public void AddLevel(int levelId, Level level)
+    {
+        levels[levelId] = level;
+    }
+
+    public Level GetCurrentLevel()
+    {
+        return levels[CurrentLevelId];
+    }
+
+    public void MoveToLevel(int levelId)
+    {
+        if (levels.ContainsKey(levelId))
+        {
+            CurrentLevelId = levelId;
+        }
+    }
+}
+
 class Program
 {
     static void Main(string[] args)
@@ -118,6 +166,46 @@ class Program
 
         // Define player
         Player player = new Player(100, 10);
+
+        // Define the Integer Values for easier reference
+        // Locations
+        int StartingVillage = 0;
+        int PortalStart = 1;
+        int TheForest = 2;
+        int TheForestGoblinArena = 3;
+        int DarkCaveEntrance = 4;
+        int DarkCavePit = 5;
+        int DarkCaveDragonArena = 6;
+        int TheCavernEntrance = 7;
+        int TheCavern = 8;
+
+
+        // Items
+        int SwordOfValor = 20;
+        int PotionOfHealing = 21;
+
+        // NPCs
+        int TalkToSagePortal = 31;
+        
+
+        // Enemies
+        int GoblinEncounter = 40;
+        int OrcEncounter = 41;
+        int DragonEncounter = 42;
+
+        // HUD
+        int CheckInventory = 50;
+        int CheckHealth = 51;
+
+        //Actions
+        int TalkToTheVillager = 60;
+        int Pray = 61;
+        int Shout = 62;
+        int SearchCurrentArea = 63;
+        int EndYourSuffering = 64;
+
+
+
 
         // Define enemies
         var enemies = new List<Enemy>
@@ -133,41 +221,142 @@ class Program
             new Item("Crystal of Destiny"),
             new Item("Sword of Valor"),
             new Item("Shield of Light"),
-            new Item("Potion of Healing", 20) // Heals 20 health points
+            new Item("Lesser Potion of Healing", 20), // Heals 20 health points
+            new Item("Potion of Healing", 50), // Heals 50 health points
+            new Item("Greater Potion of Healing", 100) // Heals 100 health points
         };
 
-        // Define locations
-        var locations = new List<Location>
-        {
-            new Location("You are in a mystical village surrounded by ancient trees. A glowing portal stands to the east.") 
-            { 
-                Actions = 
-                { 
-                    { "Enter the Portal", 1 }, 
-                    { "Go West to the Forest", 2 }, 
-                    { "Check Inventory", -1 }, 
-                    { "Check Health", -2 },
-                    { "Search Area", -3 },
-                    { "Talk to Villager", -4 }
-                } 
-            }, 
-            new Location("You step into a shimmering realm filled with vibrant colors and floating islands. A wise sage awaits you.") 
-            { 
-                Actions = 
-                { 
-                    { "Talk to the Sage", 3 }, 
-                    { "Return to Village", 0 }, 
-                    { "Check Inventory", -1 }, 
-                    { "Check Health", -2 },
-                    { "Search Area", -3 }
-                } 
-            },
-            // Add similar actions to other locations...
-        };
+        // Define level manager
+        LevelManager levelManager = new LevelManager();
 
-        int currentLocation = 0; // Start in the village
+        // Define levels
+        var village = new Level("You wake up in a mystical village surrounded by ancient trees. A glowing portal stands to the east, while a dense forest lies to the west.");
+        village.AddAction("Enter the Portal", PortalStart);
+        village.AddAction("Go West to the Forest", TheForest);
+        village.AddAction("Talk to Villager", TalkToTheVillager);
+
+        village.AddAction("Search Area", SearchCurrentArea);
+        village.AddAction("Pray", Pray);
+        village.AddAction("Shout", Shout);
+        village.AddAction("Check Inventory", CheckInventory);
+        village.AddAction("Check Health", CheckHealth);
+        village.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var portal = new Level("You step into a shimmering realm filled with vibrant colors and floating islands. A wise sage awaits you.");
+        portal.AddAction("Talk to the Sage", TalkToSagePortal);
+        portal.AddAction("Return to Village", StartingVillage);
+
+        portal.AddAction("Search Area", SearchCurrentArea);
+        portal.AddAction("Pray", Pray);
+        portal.AddAction("Shout", Shout);
+        portal.AddAction("Check Inventory", CheckInventory);
+        portal.AddAction("Check Health", CheckHealth);
+        portal.AddAction("End your Suffering...", EndYourSuffering);
+
+        
+
+        var forest = new Level("You find yourself in a dense forest. A path north leads to a clearing where a goblin is lurking. To the east, a dark cave entrance beckons.");
+        forest.AddAction("Continue walking down the Path", TheForestGoblinArena);
+        forest.AddAction("Go East towards the Cave", DarkCaveEntrance);
+        forest.AddAction("Return to Village", StartingVillage);
+
+        forest.AddAction("Search Area", SearchCurrentArea);
+        forest.AddAction("Pray", Pray);
+        forest.AddAction("Shout", Shout);
+        forest.AddAction("Check Inventory", CheckInventory);
+        forest.AddAction("Check Health", CheckHealth);
+        forest.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var forestGoblinArena = new Level("You get too close to the goblin and it attacks you!");
+        forestGoblinArena.AddAction("Fight the Goblin", GoblinEncounter);
+        forestGoblinArena.AddAction("Run away", TheForest);
+
+        forestGoblinArena.AddAction("Search Area", SearchCurrentArea);
+        forestGoblinArena.AddAction("Pray", Pray);
+        forestGoblinArena.AddAction("Shout", Shout);
+        forestGoblinArena.AddAction("Check Inventory", CheckInventory);
+        forestGoblinArena.AddAction("Check Health", CheckHealth);
+        forestGoblinArena.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var darkCave = new Level("You enter the dark cave. A faint light glimmers in the distance.");
+        darkCave.AddAction("Continue towards the Light", SwordOfValor);
+        darkCave.AddAction("Leave the cave, it's too scary...", TheForest);
+        darkCave.AddAction("There seems to be a pit on the left, should you go down?", DarkCavePit);
+
+        darkCave.AddAction("Search Area", SearchCurrentArea);
+        darkCave.AddAction("Pray", Pray);
+        darkCave.AddAction("Shout", Shout);
+        darkCave.AddAction("Check Inventory", CheckInventory);
+        darkCave.AddAction("Check Health", CheckHealth);
+        darkCave.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var darkCavePit = new Level("You descend into the pit and find a sleeping dragon. It's guarding a treasure chest.");
+        darkCavePit.AddAction("Attack the Dragon", DarkCaveDragonArena);
+        darkCavePit.AddAction("Go back up the shaft", DarkCaveEntrance);
+        darkCavePit.AddAction("Try to sneak past the Dragon", TheCavernEntrance);
+
+        darkCavePit.AddAction("Search Area", SearchCurrentArea);
+        darkCavePit.AddAction("Pray", Pray);
+        darkCavePit.AddAction("Shout", Shout);
+        darkCavePit.AddAction("Check Inventory", CheckInventory);
+        darkCavePit.AddAction("Check Health", CheckHealth);
+        darkCavePit.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var darkCaveDragonArena = new Level("You wake the dragon and it attacks you!");
+        darkCaveDragonArena.AddAction("Fight the Dragon", DragonEncounter);
+        darkCaveDragonArena.AddAction("Run far away", DarkCaveEntrance);
+
+        darkCaveDragonArena.AddAction("Search Area", SearchCurrentArea);
+        darkCaveDragonArena.AddAction("Pray", Pray);
+        darkCaveDragonArena.AddAction("Shout", Shout);
+        darkCaveDragonArena.AddAction("Check Inventory", CheckInventory);
+        darkCaveDragonArena.AddAction("Check Health", CheckHealth);
+        darkCaveDragonArena.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var theCavernEntrance = new Level("You sneak past the dragon leaving the treaure behind, you find yourself in a massive cavern.");
+        theCavernEntrance.AddAction("Explore the Cavern", TheCavern);
+        theCavernEntrance.AddAction("Return to the Dragons layer", DarkCavePit);
+        
+        theCavernEntrance.AddAction("Search Area", SearchCurrentArea);
+        theCavernEntrance.AddAction("Pray", Pray);
+        theCavernEntrance.AddAction("Shout", Shout);
+        theCavernEntrance.AddAction("Check Inventory", CheckInventory);
+        theCavernEntrance.AddAction("Check Health", CheckHealth);
+        theCavernEntrance.AddAction("End your Suffering...", EndYourSuffering);
+
+
+
+        var theCavern = new Level("You explore the cavern and find a hidden exit..");
+
+
+
+        // Add levels to the level manager
+        levelManager.AddLevel(0, village);
+        levelManager.AddLevel(1, portal);
+        levelManager.AddLevel(2, forest);
+        levelManager.AddLevel(3, forestGoblinArena);
+        levelManager.AddLevel(4, darkCave);
+        levelManager.AddLevel(5, darkCavePit);
+        levelManager.AddLevel(6, darkCaveDragonArena);
+        levelManager.AddLevel(7, theCavernEntrance);
+        levelManager.AddLevel(8, theCavern);
+
         int selectedActionIndex = 0; // Initialize selection index
-        int selectedItemIndex = 0; // Initialize inventory selection index
+
+        // Show title screen
+        ShowTitleScreen();
 
         // Main game loop
         while (!Raylib.WindowShouldClose())
@@ -175,76 +364,91 @@ class Program
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
 
+            // Get the current node
+            var currentLevel = levelManager.GetCurrentLevel();
+
             // Draw the current location description
-            Raylib.DrawText(locations[currentLocation].Description, 10, 10, 20, Color.RayWhite);
+            DrawCenteredText(currentLevel.Description, 10, 20, Color.RayWhite);
 
             // Draw the available actions
             int yOffset = 50;
-            foreach (var action in locations[currentLocation].Actions)
+            foreach (var action in currentLevel.Actions)
             {
                 Color actionColor = (selectedActionIndex == yOffset / 30 - 1) ? Color.Yellow : Color.RayWhite;
-                Raylib.DrawText(action.Key, 10, yOffset, 20, actionColor);
+                DrawCenteredText(action.Key, yOffset, 20, actionColor);
                 yOffset += 30;
             }
 
             // Handle user input for navigation
             if (Raylib.IsKeyPressed(KeyboardKey.Down))
             {
-                if (locations[currentLocation].Actions.Count > 0)
+                if (currentLevel.Actions.Count > 0)
                 {
-                    selectedActionIndex = (selectedActionIndex + 1) % locations[currentLocation].Actions.Count;
+                    selectedActionIndex = (selectedActionIndex + 1) % currentLevel.Actions.Count;
                 }
             }
             else if (Raylib.IsKeyPressed(KeyboardKey.Up))
             {
-                if (locations[currentLocation].Actions.Count > 0)
+                if (currentLevel.Actions.Count > 0)
                 {
-                    selectedActionIndex = (selectedActionIndex - 1 + locations[currentLocation].Actions.Count) % locations[currentLocation].Actions.Count;
+                    selectedActionIndex = (selectedActionIndex - 1 + currentLevel.Actions.Count) % currentLevel.Actions.Count;
                 }
             }
             else if (Raylib.IsKeyPressed(KeyboardKey.Enter))
             {
-                if (locations[currentLocation].Actions.Count > 0)
+                if (currentLevel.Actions.Count > 0)
                 {
-                    var action = locations[currentLocation].Actions.ElementAt(selectedActionIndex);
-                    if (action.Value == -1) // Check Inventory
+                    var action = currentLevel.Actions.ElementAt(selectedActionIndex);
+                    if (action.Value == CheckInventory) // Check Inventory
                     {
                         DisplayInventory(player);
                     }
-                    else if (action.Value == -2) // Check Health
+                    else if (action.Value == CheckHealth) // Check Health
                     {
                         DisplayHealth(player);
                     }
-                    else if (action.Value == -3) // Search Area
+                    else if (action.Value == SearchCurrentArea) // Search Area
                     {
                         SearchArea(player);
                     }
-                    else if (action.Value == -4) // Talk to Villager
+                    else if (action.Value == TalkToTheVillager) // Talk to Villager
                     {
                         TalkToVillager(player);
                     }
-                    else
+                    else if (action.Value == Pray)
                     {
-                        currentLocation = action.Value;
+                        StartPraying(player);
+                    }
+                    else if (action.Value == Shout)
+                    {
+                        StartShouting(player);
+                    }
+                    else if (action.Value == EndYourSuffering)
+                    {
+                        StopSuffering(player);
+                    }
+                    
+                    {
+                        levelManager.MoveToLevel(action.Value);
 
                         // Check for battles
-                        if (currentLocation == 9) // Goblin encounter
+                        if (action.Value == GoblinEncounter) // Goblin encounter
                         {
-                            Battle(player, enemies[0]);
+                            StartBattle(player, enemies[0]);
                         }
-                        else if (currentLocation == 10) // Orc encounter
+                        else if (action.Value == OrcEncounter) // Orc encounter
                         {
-                            Battle(player, enemies[1]);
+                            StartBattle(player, enemies[1]);
                         }
-                        else if (currentLocation == 11) // Dragon encounter
+                        else if (action.Value == DragonEncounter) // Dragon encounter
                         {
-                            Battle(player, enemies[2]);
+                            StartBattle(player, enemies[2]);
                         }
-                        else if (currentLocation == 12) // Sword of Valor
+                        else if (action.Value == SwordOfValor) // Sword of Valor
                         {
                             player.AddItem(new Item("Sword of Valor"));
                         }
-                        else if (currentLocation == 13) // Potion of Healing
+                        else if (action.Value == PotionOfHealing) // Potion of Healing
                         {
                             player.AddItem(new Item("Potion of Healing", 20));
                         }
@@ -252,33 +456,54 @@ class Program
                 }
             }
 
-            // Handle user input for inventory navigation
-            if (Raylib.IsKeyPressed(KeyboardKey.Down))
-            {
-                if (player.Inventory.Count > 0)
-                {
-                    selectedItemIndex = (selectedItemIndex + 1) % player.Inventory.Count;
-                }
-            }
-            else if (Raylib.IsKeyPressed(KeyboardKey.Up))
-            {
-                if (player.Inventory.Count > 0)
-                {
-                    selectedItemIndex = (selectedItemIndex - 1 + player.Inventory.Count) % player.Inventory.Count;
-                }
-            }
-            else if (Raylib.IsKeyPressed(KeyboardKey.Backspace))
-            {
-                if (player.Inventory.Count > 0 && selectedItemIndex >= 0 && selectedItemIndex < player.Inventory.Count)
-                {
-                    player.UseItem(player.Inventory[selectedItemIndex].Name);
-                }
-            }
-
             Raylib.EndDrawing();
         }
     }
 
+    static void ShowTitleScreen()
+    {
+        while (!Raylib.WindowShouldClose())
+        {
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.Black);
+
+            // Draw title with shaking effect
+            DrawShakingText("Fantasy Text Adventure", Raylib.GetScreenWidth() / 2, 200, 40, Color.RayWhite);
+            DrawShakingText("Created by Adrian", Raylib.GetScreenWidth() / 2, 300, 20, Color.RayWhite);
+
+            // Draw start button
+            DrawCenteredText("Press ENTER to Start Dreaming..", 400, 20, Color.Red);
+
+            Raylib.EndDrawing();
+
+            // Wait for user to press ENTER to start the game
+            if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+            {
+                break;
+            }
+        }
+    }
+
+    static void DrawShakingText(string text, int centerX, int posY, int fontSize, Color color)
+    {
+        Random random = new Random();
+        int textWidth = Raylib.MeasureText(text, fontSize);
+        int startX = centerX - textWidth / 2;
+
+        for (int i = 0; i < text.Length; i++)
+        {
+            int offsetX = random.Next(-1, 1); 
+            int offsetY = random.Next(-1, 1); 
+            Raylib.DrawText(text[i].ToString(), startX + i * fontSize + offsetX, posY + offsetY, fontSize, color);
+        }
+    }
+
+static void DrawCenteredText(string text, int posY, int fontSize, Color color)
+{
+    int textWidth = Raylib.MeasureText(text, fontSize);
+    int posX = (Raylib.GetScreenWidth() - textWidth) / 2;
+    Raylib.DrawText(text, posX, posY, fontSize, color);
+}
     static void DisplayInventory(Player player)
     {
         while (!Raylib.WindowShouldClose())
@@ -286,17 +511,17 @@ class Program
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
             int yOffset = 50;
-            Raylib.DrawText("Inventory:", 10, yOffset, 20, Color.RayWhite);
+            DrawCenteredText("Inventory:", yOffset, 20, Color.RayWhite);
             yOffset += 30;
             for (int i = 0; i < player.Inventory.Count; i++)
             {
-                Raylib.DrawText(player.Inventory[i].Name, 10, yOffset, 20, Color.RayWhite);
+                DrawCenteredText(player.Inventory[i].Name, yOffset, 20, Color.RayWhite);
                 yOffset += 30;
             }
             Raylib.EndDrawing();
 
             // Wait for user input to go back to the main game
-            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Escape))
+            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Backspace))
             {
                 break;
             }
@@ -309,11 +534,15 @@ class Program
         {
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
-            Raylib.DrawText($"Health: {player.Health}/{player.MaxHealth}", 10, 50, 20, Color.RayWhite);
+
+            // Center the health text
+            string healthText = $"Health: {player.Health}/{player.MaxHealth}";
+            DrawCenteredText(healthText, 50, 20, Color.RayWhite);
+
             Raylib.EndDrawing();
 
             // Wait for user input to go back to the main game
-            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Escape))
+            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Backspace))
             {
                 break;
             }
@@ -326,11 +555,15 @@ class Program
         {
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
-            Raylib.DrawText("You search the area and find nothing of interest.", 10, 50, 20, Color.RayWhite);
+
+            // Center the search area text
+            string searchText = "You search the area and find nothing of interest.";
+            DrawCenteredText(searchText, 50, 20, Color.RayWhite);
+
             Raylib.EndDrawing();
 
             // Wait for user input to go back to the main game
-            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Escape))
+            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Backspace))
             {
                 break;
             }
@@ -343,18 +576,139 @@ class Program
         {
             Raylib.BeginDrawing();
             Raylib.ClearBackground(Color.Black);
-            Raylib.DrawText("You talk to the villager. They have no useful information.", 10, 50, 20, Color.RayWhite);
+
+            // Center the talk to villager text
+            string talkText = "You talk to the villager. They have no useful information.";
+            DrawCenteredText(talkText, 50, 20, Color.RayWhite);
+
             Raylib.EndDrawing();
 
             // Wait for user input to go back to the main game
-            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Escape))
+            if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Backspace))
             {
                 break;
             }
         }
     }
 
-    static void Battle(Player player, Enemy enemy)
+    static void StopSuffering(Player player)
+    {
+        while (!Raylib.WindowShouldClose())
+        {
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.Black);
+
+            // Center the death text
+            string deathText = "You successfully ended your Suffering! Press ENTER to dream once again...";
+            DrawCenteredText(deathText, 50, 20, Color.RayWhite);
+
+            Raylib.EndDrawing();
+
+            // Wait for user input to restart the game
+            if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+            {
+                // Reset the player's health
+                player.Health = player.MaxHealth;
+                break;
+            }
+        }
+    }
+    static void StartPraying(Player player)
+    {
+        while (!Raylib.WindowShouldClose())
+        {
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.Black);
+
+                // Center the praying text
+            {
+                string talkText = "You start praying. You feel a sense of calm and peace.";
+                DrawCenteredText(talkText, 50, 20, Color.RayWhite);
+
+                Raylib.EndDrawing();
+
+                // Wait for user input to go back to the main game
+                if (Raylib.IsKeyPressed(KeyboardKey.Enter) || Raylib.IsKeyPressed(KeyboardKey.Backspace))
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    static void StartShouting(Player player)
+    {
+        string userInput =  "";
+        string resultText = "";
+
+        while (!Raylib.WindowShouldClose())
+        {
+            Raylib.BeginDrawing();
+            Raylib.ClearBackground(Color.Black);
+
+            // Center the shouting prompt text
+            string promptText = "What do you want to shout?";
+            DrawCenteredText(promptText, 200, 20, Color.RayWhite);
+
+            // Draw the user input
+            DrawCenteredText(userInput, 250, 20, Color.Red);
+
+            // Draw the result text
+            if (!string.IsNullOrEmpty(resultText))
+            {
+                DrawCenteredText(resultText, 300, 20, Color.RayWhite);
+            }
+
+            Raylib.EndDrawing();
+
+            // Handle user input
+            int key = Raylib.GetKeyPressed();
+            if (key >= 32 && key <= 126) // Printable characters
+            {
+                userInput += (char)key;
+            }
+            else if (key == 259 && userInput.Length > 0) // Backspace
+            {
+                userInput = userInput.Substring(0, userInput.Length - 1);
+            }
+            else if (Raylib.IsKeyPressed(KeyboardKey.Enter))
+            {
+                // Check the user input and perform the corresponding action
+                resultText = CheckShout(userInput);
+                userInput = ""; // Clear the input after checking
+            }
+            else if (Raylib.IsKeyPressed(KeyboardKey.Backspace))
+            {
+                break; // Exit the shouting mode
+            }
+        }
+    }
+
+    static string CheckShout(string input)
+    {
+        // Define the predefined words and corresponding actions
+        var shoutActions = new Dictionary<string, string>
+        {
+            { "help", "You hear a distant voice that leads you back home.."},
+            { "attack", "You prepare for battle!" },
+            { "run", "You run away quickly!" },
+            { "heal", "You use a healing potion!" },
+            { "magic", "You cast a powerful spell!" }
+        };
+
+        // Check if the input matches any predefined word
+        if (shoutActions.ContainsKey(input.ToLower()))
+        {
+            return shoutActions[input.ToLower()];
+        }
+        else
+        {
+            return "Nothing happens...";
+        }
+    }
+
+
+    static void StartBattle(Player player, Enemy enemy)
     {
         if (player.HasSword)
         {
@@ -381,7 +735,9 @@ class Program
 
                 if (player.Health <= 0)
                 {
-                    Console.WriteLine("You have been defeated!");
+                    string promptText = "You died! Press ENTER to dream once again...";
+                    DrawCenteredText(promptText, 200, 20, Color.RayWhite);
+                    Raylib.EndDrawing();
                     return;
                 }
             }
